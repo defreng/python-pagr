@@ -1,0 +1,6 @@
+simpleatlassian
+influxdb
+python-jenkins
+python-dateutil
+pytz
+pyyaml
