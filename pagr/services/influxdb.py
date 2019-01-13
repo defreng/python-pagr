@@ -11,7 +11,7 @@ class InfluxDBService:
         self._port = configuration.get('INFLUXDB_PORT', 8086)
         self._username = configuration.get('INFLUXDB_USERNAME', None)
         self._password = configuration.get('INFLUXDB_PASSWORD', None)
-        self._path = configuration.get('INFLUXDB_PATH', '/')
+        self._path = configuration.get('INFLUXDB_PATH', '')
         self._ssl = configuration.get('INFLUXDB_SSL_ENABLED', False)
 
         self.influxdb = InfluxDBClient(self._host, self._port, self._username, self._password,
