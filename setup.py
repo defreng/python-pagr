@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pagr",
-    version="0.0.2",
+    version="0.0.3",
     author="Alexander Hungenberg",
     author_email="alexander.hungenberg@gmail.com",
     description="A Python Aggregator",
