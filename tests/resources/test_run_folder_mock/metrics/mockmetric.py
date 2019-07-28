@@ -1,6 +1,6 @@
 class MockMetric:
     def __init__(self, services):
-        self.influxdb = services['influxdb'].influxdb
+        self.influxdb = services['InfluxDBService'].influxdb
 
     def run(self):
         points = [

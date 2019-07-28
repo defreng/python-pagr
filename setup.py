@@ -5,7 +5,7 @@ with open("README.md", "r") as fh:
 
 setuptools.setup(
     name="pagr",
-    version="0.0.3",
+    version="0.1.1",
     author="Alexander Hungenberg",
     author_email="alexander.hungenberg@gmail.com",
     description="A Python Aggregator",
@@ -18,7 +18,4 @@ setuptools.setup(
         "License :: OSI Approved :: MIT License",
         "Operating System :: OS Independent",
     ],
-    install_requires=[
-        'pyyaml'
-    ]
 )

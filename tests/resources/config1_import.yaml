@@ -1,5 +1,0 @@
-imports:
-  - config1.yaml
-
-metrics:
-  - metrics.mockmetric.MockMetric
