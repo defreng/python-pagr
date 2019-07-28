@@ -4,34 +4,25 @@ import importlib.util
 import inspect
 import os
 import sys
+import pkgutil
 
 
-def run_folder(argv=None):
-    parser = ArgumentParser(description='pagr - the Python Aggregator')
-    parser.add_argument('folder', metavar='myfolder', type=str, nargs='+',
-                        help='a base folder in which all services/metrics should be executed')
+class ServiceLoader:
+    def __init__(self, folder_path):
+        self._instances = dict()
 
-    args = parser.parse_args(argv)
+        self.folder_path = folder_path
+        self.configuration = dict()
+        for key, value in os.environ.items():
+            if key.startswith('PAGR_'):
+                self.configuration[key[5:]] = value
 
-    # save the created services / metric objects and return them later. This allows for better testing.
-    created_objects = []
+        self.preload_folder_services()
 
-    configuration = dict()
-    for key, value in os.environ.items():
-        if key.startswith('PAGR_'):
-            configuration[key[5:]] = value
-    
-    for path in args.folder:
-        module_name = os.path.basename(os.path.normpath(path))
-        abspath = os.path.abspath(path)
+    def preload_folder_services(self):
+        module_name = os.path.basename(os.path.normpath(self.folder_path))
+        abspath = os.path.abspath(self.folder_path)
 
-        services = dict()
-        metrics = dict()
-
-        if not os.path.isdir(abspath):
-            raise Exception(f'Given folder {abspath} could not be found')
-        
-        # import services
         for pyfile in glob.glob(os.path.join(abspath, 'services', '*.py')):
             service_name = module_name + '.services.' + os.path.split(pyfile)[1].rsplit('.py')[0]
 
@@ -44,11 +35,57 @@ def run_folder(argv=None):
                     continue
                 if not name.endswith('Service'):
                     pass
-                
-                if name in services:
+
+                if name in self._instances:
                     raise Exception(f'Service {name} already exists')
-                
-                services[name] = obj(configuration)
+
+                self._instances[name] = obj(self.configuration)
+
+    def __getitem__(self, item):
+        if item in self._instances:
+            return self._instances[item]
+
+        # first, try to load internal service
+        from pagr import services as internal_services
+
+        for importer, modname, ispkg in pkgutil.iter_modules(internal_services.__path__):
+            try:
+                service = importer.find_module(modname).load_module(modname)
+            except ImportError:
+                continue
+
+            for name, obj in inspect.getmembers(service):
+                if name != item:
+                    continue
+                if not inspect.isclass(obj):
+                    continue
+
+                self._instances[name] = obj(self.configuration)
+                return self._instances[name]
+
+    def __len__(self):
+        return len(self._instances)
+
+
+def run_folder(argv=None):
+    parser = ArgumentParser(description='pagr - the Python Aggregator')
+    parser.add_argument('folder', metavar='myfolder', type=str, nargs='+',
+                        help='a base folder in which all services/metrics should be executed')
+
+    args = parser.parse_args(argv)
+
+    # save the created services / metric objects and return them later. This allows for better testing.
+    created_objects = []
+    
+    for path in args.folder:
+        module_name = os.path.basename(os.path.normpath(path))
+        abspath = os.path.abspath(path)
+
+        services = ServiceLoader(path)
+        metrics = dict()
+
+        if not os.path.isdir(abspath):
+            raise Exception(f'Given folder {abspath} could not be found')
         
         # import metrics
         for pyfile in glob.glob(os.path.join(abspath, 'metrics', '*.py')):
