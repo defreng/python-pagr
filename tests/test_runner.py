@@ -8,31 +8,35 @@ def test_run_folder_mock():
 
     objects = run_folder(['resources/test_run_folder_mock'])
 
-    assert len(objects) == 1
-    assert len(objects[0][1]['InfluxDBService'].influxdb.method_calls) == 1
-    assert objects[0][1]['InfluxDBService'].configuration['INFLUXDB_HOST'] == 'myhost'
+    assert len(objects) == 3
+    assert 'MockMetric' in objects[2]
+    assert 'Mock2Metric' in objects[2]
+    assert 'SubfolderMetric' in objects[2]
+    assert objects[2]['SubfolderMetric']['instance'].ran
+
+    assert len(objects[1]['InfluxDBService'].influxdb.method_calls) == 2
+    assert objects[1]['InfluxDBService'].configuration['INFLUXDB_HOST'] == 'myhost'
+
+
+def test_run_folder_mock_metric_selection():
+    os.environ['PAGR_INFLUXDB_HOST'] = 'myhost'
+
+    objects = run_folder(['resources/test_run_folder_mock', '-m', 'MockMetric'])
+
+    assert len(objects[2]) == 1
+
+
+def test_run_folder_mock_metric_multi_selection():
+    os.environ['PAGR_INFLUXDB_HOST'] = 'myhost'
+
+    objects = run_folder(['resources/test_run_folder_mock', '-m', 'MockMetric', '-m', 'Mock2Metric'])
+
+    assert len(objects[2]) == 2
 
 
 def test_run_folder_empty():
     objects = run_folder(['resources/test_run_folder_empty'])
 
-    assert len(objects) == 1
-    assert len(objects[0][1]) == 0
-    assert len(objects[0][2]) == 0
-
-
-def test_internal_services_available():
-    os.environ['PAGR_INFLUXDB_HOST'] = 'myhost'
-
-    objects = run_folder(['resources/test_run_folder_empty'])
-
-    assert len(objects) == 1
-
-    test_service = objects[0][1]['TestService']
-    test_service.a = 1234
-
-    test_service2 = objects[0][1]['TestService']
-    assert test_service2.a == 1234
-
-    assert objects[0][1]['TestService'].configuration['INFLUXDB_HOST'] == 'myhost'
+    assert len(objects[1]) == 0
+    assert len(objects[2]) == 0
 
