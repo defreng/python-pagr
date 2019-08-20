@@ -1,11 +1,12 @@
-import os
+from unittest.mock import patch
 
 from pagr.runner import run_folder
 
 
+@patch.dict('os.environ', {
+    'PAGR_INFLUXDB_HOST': 'myhost',
+})
 def test_run_folder_mock():
-    os.environ['PAGR_INFLUXDB_HOST'] = 'myhost'
-
     objects = run_folder(['resources/test_run_folder_mock'])
 
     assert len(objects) == 3
@@ -18,18 +19,40 @@ def test_run_folder_mock():
     assert objects[1]['InfluxDBService'].configuration['INFLUXDB_HOST'] == 'myhost'
 
 
+@patch.dict('os.environ', {
+    'PAGR_INFLUXDB_HOST': 'myhost',
+})
 def test_run_folder_mock_metric_selection():
-    os.environ['PAGR_INFLUXDB_HOST'] = 'myhost'
-
     objects = run_folder(['resources/test_run_folder_mock', '-m', 'MockMetric'])
 
     assert len(objects[2]) == 1
 
 
-def test_run_folder_mock_metric_multi_selection():
-    os.environ['PAGR_INFLUXDB_HOST'] = 'myhost'
+@patch.dict('os.environ', {
+    'PAGR_INFLUXDB_HOST': 'myhost',
+    'PAGR_METRICS': 'MockMetric'
+})
+def test_run_folder_mock_metric_selection_env():
+    objects = run_folder(['resources/test_run_folder_mock'])
 
+    assert len(objects[2]) == 1
+
+
+@patch.dict('os.environ', {
+    'PAGR_INFLUXDB_HOST': 'myhost',
+})
+def test_run_folder_mock_metric_multi_selection():
     objects = run_folder(['resources/test_run_folder_mock', '-m', 'MockMetric', '-m', 'Mock2Metric'])
+
+    assert len(objects[2]) == 2
+
+
+@patch.dict('os.environ', {
+    'PAGR_INFLUXDB_HOST': 'myhost',
+    'PAGR_METRICS': 'MockMetric,SubfolderMetric'
+})
+def test_run_folder_mock_metric_multi_selection_env():
+    objects = run_folder(['resources/test_run_folder_mock'])
 
     assert len(objects[2]) == 2
 

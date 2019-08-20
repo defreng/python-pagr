@@ -17,13 +17,14 @@ def run_folder(argv=None):
 
     args = parser.parse_args(argv)
     path = args.folder
-    if args.metric is None:
-        desired_metrics = None
-    else:
-        desired_metrics = []
+    desired_metrics = []
+    if args.metric is not None:
         for m in args.metric:
             if m not in desired_metrics:
                 desired_metrics.append(m[0])
+    if os.environ.get('PAGR_METRICS', None) is not None:
+        for m in os.environ['PAGR_METRICS'].split(','):
+            desired_metrics.append(m)
 
     module_name = os.path.basename(os.path.normpath(path))
     abspath = os.path.abspath(path)
@@ -47,7 +48,7 @@ def run_folder(argv=None):
                 continue
             if not name.endswith('Metric'):
                 continue
-            if desired_metrics is not None and name not in desired_metrics:
+            if len(desired_metrics) > 0 and name not in desired_metrics:
                 continue
 
             if name in metrics:
