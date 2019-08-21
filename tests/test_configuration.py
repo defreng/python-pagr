@@ -8,3 +8,5 @@ def test_configuration_load():
     conf = ConfigurationProvider()
 
     assert conf['TEST_CONFIG_1'] == 'blabla'
+    assert conf.get('TEST_CONFIG_1', 'test') == 'blabla'
+    assert conf.get('TEST_CONFIG_2', 'dfg') == 'dfg'

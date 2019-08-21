@@ -14,5 +14,8 @@ class ConfigurationProvider:
             if key.startswith('PAGR_'):
                 self.config[key[5:]] = value
 
+    def get(self, key, default):
+        return self.config.get(key, default)
+
     def __getitem__(self, item):
         return self.config[item]
